@@ -1,4 +1,9 @@
 # EC551 project
+
+All modules are parameterized.
+Image.zip is the VGA controller.
+
+
 You must generate the IP CORES by yourself.  
 The name of the ip core you generate should be the same with the one called in the module!!!!
 
