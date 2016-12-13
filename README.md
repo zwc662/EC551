@@ -1,20 +1,23 @@
 # EC551 project
 1.  BVB.zip include the Bank Vector Buffer(BVB) module
-This module include 32 Block RAMs. The vector we want to process is split up and stored in those 32 BRAMs. The index of the vector values are equal to the least 5 significant bits of the each BRAM's index. The inputs of the module is column ids from matrix fetcher. If there are n channels, it would be a n*32 crossbar. We use the column id as index to find the vector values we want. For each column id input, we first use the last 5 least significant bits of it to find the BRAM index we want to search within. Then we use the column id to find the vector value in this BRAM. The outputs, vector values, are sent into FIFOs and transmitted to the accumulators at last.
-
-P.S The BVB module can process data from all channels in parallel. It can output data to all channels  
+This module include 32 Block RAMs. The vector we want to process is split up and stored in those 32 BRAMs. The index of the vector values are equal to the least 5 significant bits of the each BRAM's index. The inputs of the module is column ids from matrix fetcher. If there are n channels, it would be a n*32 crossbar. We use the column id as index to find the vector values we want. For each column id input, we first use the last 5 least significant bits of it to find the BRAM index we want to search within. Then we use the column id to find the vector value in this BRAM. The outputs, vector values, are sent into FIFOs and transmitted to the accumulators at last. This BVB module can process data from all channels in parallel. It can output data to all channels in the same clock cycle. 
 
 2.  BVB_Simple.zip is just a simple version of the Bank Vector Buffer.
 This one can't output data into multiple channels in one clock cycle. 
 
-3.  CISR.zip send row index to the   
-All modules are parameterized.
-Image.zip is the VGA controller.
+3.  CISR.zip send row index to the accumulator
+This module get the row lengths of rows and the channel numbers as input. There are counters in the module, which count down from the row length numbers sent in down to 0. While counting down, it decode the row IDs of the rows which send the row lengths in. This uses a simple algorithm but need a complex combinational logic to finish. This module also works in parallel, which means that it sends data to all channels in every clock cycle. 
 
+4. Channel_Accumulator.zip include the channel and accumulator
+The channels include a multiplier wich do the multiplication of vector value from BVB and matrix value from matrix fetcher. Then it output the product to the accumulator. According to the multiple row IDs input from the CISR part, the accumulator accumulate the product and sum them up to find out the output vector value according to the row ID. Then output the value the output buffer.
 
-You must generate the IP CORES by yourself.  
-The name of the ip core you generate should be the same with the one called in the module!!!!
+5. FIFO.zip include the seperated channel, accumulator, and a testbench for FIFO.
 
-There is a parameter definitions.vh file in the zip files. Almost all the parameters I called are from this file.
+6. Image.zip include the VGA controller which is used to turn the output vector to a matrix and display on the monitor.
 
+7. Sparse_Storage is the top module which includes the BVB_Simple, CISR, Channel_Accumulators.
+
+8. Top.zip is the ultimate top module which not only include the submodules of Sparse_Storage but also include the matrix fetcher and a new BVB.
+
+9.  All modules are parameterized and all parameters in all modules are unified in one file, the definitions.vh. 
 For instance, the parameter row_id_bits is the row ID number bit length.  Parametermult_out_bits is the bit length of the product of vector value and matrix value. matrix_val_bits and vec_val_bits are the bit lengths of one single matrix and vector element value.
