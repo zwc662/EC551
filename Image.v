@@ -87,10 +87,14 @@ module Image(
 				j=(counter_y-(`PIXEL_HEIGHT-`BLOCK_SIZE*`BLOCKS_HIGH)/2)/`BLOCK_SIZE;
 				i=(counter_x-(`PIXEL_WIDTH-`BLOCK_SIZE*`BLOCKS_WIDE)/2)/`BLOCK_SIZE;
 				rgb<=rgb_o;
-				case(pixel) 
-					8'b010: 		  index<=0;
-					8'b100:       index<=1;
-					8'b110:       index<=2;
+				case(pixel)
+					8'b0010: 		index<=j*`BLOCKS_WIDE+i+1024;
+					8'b0100:       index<=j*`BLOCKS_WIDE+i+2048;
+					8'b0110:       index<=j*`BLOCKS_WIDE+i+3072;
+					8'b1000: 		index<=j*`BLOCKS_WIDE+i+4096;
+					8'b1010:       index<=j*`BLOCKS_WIDE+i+5120;
+					8'b1100:       index<=j*`BLOCKS_WIDE+i+6144;
+			
 					default: 	  index<=j*`BLOCKS_WIDE+i;
 				endcase; 
 			end else begin
