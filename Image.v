@@ -23,29 +23,23 @@
 module Image(
     input wire clk, 
     input wire rst,
-    input wire empty, //only when en==1, the image memory read pixels
-    input wire start_over,//when start_over==1, the image memory would be clear.
 	 input wire [7:0] pixel, // the image memory
 	 
- 
+	 output wire [7:0] Led,
     output reg [7:0] rgb, // the output rgb color
     output wire hsync, //hsync signal
-    output wire vsync, //vsync signal
-	 output reg rd_en // ready for next pixel
+    output wire vsync //vsync signal
     );
 	 
 	 
 	 reg wr_en;
 	 reg [9:0] index=0;
-	 reg [9:0] write_index=0;
-	 reg [9:0] read_index=0;
 	 wire [7:0] rgb_o;
-	 reg [7:0] pixel_i=`RED;
 	 integer i,j;
 	 	
 	 reg clk_count;
     reg clk_monitor;
-	 
+	 assign Led=pixel;
 	 always@(posedge clk) begin
 		clk_count <= ~clk_count;
       if (clk_count) begin
@@ -74,40 +68,31 @@ module Image(
                      counter_y < (`PIXEL_HEIGHT + `VSYNC_FRONT_PORCH + `VSYNC_PULSE_WIDTH));
 	 
 	 bram bram_(.addra(index),
-					.dina(pixel_i),
-					.wea(wr_en),
+//					.dina(pixel_i),
+//					.wea(wr_en),
 					.clka(clk),
 					.douta(rgb_o)
 					);
 					
  
 	 always@(posedge clk) begin
-		if(start_over==1 || rst==1) begin
-			wr_en<=0;
-			rd_en<=1;
-			write_index<=0;
-		end else if(start_over==0 && empty==0) begin
-			index<=write_index;
-			if(write_index<=`BLOCKS_WIDE*`BLOCKS_HIGH-1) begin
-				write_index<=write_index+1;
-				pixel_i<=pixel;
-				wr_en<=1;
-			end else begin
-				wr_en<=0;
-				rd_en<=0;
-			end 
-		end else if(start_over==0 && empty==1) begin
-			wr_en<=0;
-			rd_en<=0;
+		if(rst==1) begin
+			index<=0;
+			rgb<=`BLACK;
+		end else begin
 			if((counter_x > (`PIXEL_WIDTH - `BLOCK_SIZE*`BLOCKS_WIDE)/2) && 
 				(counter_x < (`PIXEL_WIDTH + `BLOCK_SIZE*`BLOCKS_WIDE)/2) && 
 				(counter_y > (`PIXEL_HEIGHT - `BLOCK_SIZE*`BLOCKS_HIGH)/2) &&
 				(counter_y < (`PIXEL_HEIGHT + `BLOCK_SIZE*`BLOCKS_HIGH)/2)) begin
 				j=(counter_y-(`PIXEL_HEIGHT-`BLOCK_SIZE*`BLOCKS_HIGH)/2)/`BLOCK_SIZE;
 				i=(counter_x-(`PIXEL_WIDTH-`BLOCK_SIZE*`BLOCKS_WIDE)/2)/`BLOCK_SIZE;
-				index<=j*`BLOCKS_WIDE+i;
 				rgb<=rgb_o;
-				
+				case(pixel) 
+					8'b010: 		  index<=0;
+					8'b100:       index<=1;
+					8'b110:       index<=2;
+					default: 	  index<=j*`BLOCKS_WIDE+i;
+				endcase; 
 			end else begin
 				rgb<=`BLACK;
 			end
